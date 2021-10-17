@@ -1,0 +1,11 @@
+#+TITLE: Readme
+* llvm-tricore
+LLVM Compiler Infrastructure with TriCore backend.
+Based on: https://github.com/llvm-mirror/llvm and
+https://github.com/kumailxp/tricore_llvm
+* How to build(verified on Ubuntu 20.04.2 LTS)
+- $ git clone git@github.com:BaoshanPang/llvm-tricore.git
+- $ mkdir build
+- $ cd build
+- $ cmake ../llvm-tricore
+- $ cmake --build .
