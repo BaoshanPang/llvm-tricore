@@ -72,42 +72,42 @@ public:
                            MachineBasicBlock::iterator I, DebugLoc DL,
                            unsigned DestReg, unsigned SrcReg,
                            bool KillSrc) const override;
-//
-//  virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
-//                                   MachineBasicBlock::iterator MI,
-//                                   unsigned SrcReg, bool isKill, int FrameIndex,
-//                                   const TargetRegisterClass *RC,
-//                                   const TargetRegisterInfo *TRI) const
-//                                   override;
-//
-//  virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
-//                                    MachineBasicBlock::iterator MI,
-//                                    unsigned DestReg, int FrameIndex,
-//                                    const TargetRegisterClass *RC,
-//                                    const TargetRegisterInfo *TRI) const
-//                                    override;
+
+ virtual void storeRegToStackSlot(MachineBasicBlock &MBB,
+                                  MachineBasicBlock::iterator MI,
+                                  unsigned SrcReg, bool isKill, int FrameIndex,
+                                  const TargetRegisterClass *RC,
+                                  const TargetRegisterInfo *TRI) const
+                                  override;
+
+ virtual void loadRegFromStackSlot(MachineBasicBlock &MBB,
+                                   MachineBasicBlock::iterator MI,
+                                   unsigned DestReg, int FrameIndex,
+                                   const TargetRegisterClass *RC,
+                                   const TargetRegisterInfo *TRI) const
+                                   override;
 
   void splitRegs(unsigned Reg, unsigned &LoReg, unsigned &HiReg) const;
 
    virtual bool expandPostRAPseudo(MachineBasicBlock::iterator MI) const
      override;
 
-//  TriCoreCC::CondCodes getCondFromBranchOpc(unsigned Opc) const;
-//  TriCoreCC::CondCodes getOppositeCondition(TriCoreCC::CondCodes CC) const;
-//  const MCInstrDesc& getBrCond(TriCoreCC::CondCodes CC) const;
-//  bool AnalyzeBranch(MachineBasicBlock &MBB,
-//                       MachineBasicBlock *&TBB, MachineBasicBlock *&FBB,
-//                       SmallVectorImpl<MachineOperand> &Cond,
-//                       std::vector<unsigned> &s1,
-//                       std::vector<unsigned> &s2,
-//                       bool AllowModify) const;
-//
-//  unsigned RemoveBranch(MachineBasicBlock &MBB) const override;
-//  unsigned InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
-//                          MachineBasicBlock *FBB, ArrayRef<MachineOperand> Cond,
-//                          std::vector<unsigned> &s1,
-//                          std::vector<unsigned> &s2,
-//                          DebugLoc DL) const ;
+ // TriCoreCC::CondCodes getCondFromBranchOpc(unsigned Opc) const;
+ // TriCoreCC::CondCodes getOppositeCondition(TriCoreCC::CondCodes CC) const;
+ // const MCInstrDesc& getBrCond(TriCoreCC::CondCodes CC) const;
+ // bool AnalyzeBranch(MachineBasicBlock &MBB,
+ //                      MachineBasicBlock *&TBB, MachineBasicBlock *&FBB,
+ //                      SmallVectorImpl<MachineOperand> &Cond,
+ //                      std::vector<unsigned> &s1,
+ //                      std::vector<unsigned> &s2,
+ //                      bool AllowModify) const;
+
+ // unsigned RemoveBranch(MachineBasicBlock &MBB) const override;
+ // unsigned InsertBranch(MachineBasicBlock &MBB, MachineBasicBlock *TBB,
+ //                         MachineBasicBlock *FBB, ArrayRef<MachineOperand> Cond,
+ //                         std::vector<unsigned> &s1,
+ //                         std::vector<unsigned> &s2,
+ //                         DebugLoc DL) const ;
 };
 }
 

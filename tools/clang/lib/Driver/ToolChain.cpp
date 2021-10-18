@@ -341,6 +341,9 @@ std::string ToolChain::ComputeLLVMTriple(const ArgList &Args,
 
     return Triple.getTriple();
   }
+  case llvm::Triple::tricore: {
+    return Triple.getTriple();
+  }
   }
 }
 
