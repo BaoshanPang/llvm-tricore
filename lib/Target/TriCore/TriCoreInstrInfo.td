@@ -402,6 +402,10 @@ let Defs=[PSW] in {
    [(set DataRegs:$d, (mul DataRegs:$s1, immSExt9:$const9) )]>;
 }
 
+def MULrr2_64 : RR2<0x73, 0x00A, (outs ExtRegs:$d),
+   (ins ExtRegs:$s1, ExtRegs:$s2), "mul $d, $s1, $s2 # mul64",
+   [(set ExtRegs:$d, (mul ExtRegs:$s1, ExtRegs:$s2) )]>;
+
 // Logical Instructions
 multiclass Logical32_0<bits<8> opcode1, string asmstring,
 SDNode OpNode>
