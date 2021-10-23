@@ -1068,7 +1068,7 @@ multiclass JUMP_16<bits<8> op1_sb, bits<8> op1_sbr,
      [(TriCoreBrCC bb:$disp8, D15, PF)]>;
 
   def sbr: SBR<op1_sbr, (outs),
-     (ins DataRegs:$s1, jmptarget:$disp4),
+     (ins jmptarget:$disp4, DataRegs:$s1),
      !strconcat(asmstring, " $s1, $disp4"),
      [(TriCoreBrCC bb:$disp4, DataRegs:$s1, PF)]>;
 }

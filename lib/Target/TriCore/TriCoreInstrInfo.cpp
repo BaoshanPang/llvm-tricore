@@ -148,9 +148,9 @@ void TriCoreInstrInfo::loadRegFromStackSlot(MachineBasicBlock &MBB,
                                          const TargetRegisterClass *RC,
                                          const TargetRegisterInfo *TRI) const
 {
- outs().changeColor(raw_ostream::BLUE,1);
+// outs().changeColor(raw_ostream::BLUE,1);
  outs()<<"loadRegFromStackSlot\n";
- outs().changeColor(raw_ostream::WHITE,0);
+// outs().changeColor(raw_ostream::WHITE,0);
  DebugLoc DL;
  if (I != MBB.end()) DL = I->getDebugLoc();
  MachineFunction &MF = *MBB.getParent();
