@@ -402,7 +402,7 @@ let Defs=[PSW] in {
    [(set DataRegs:$d, (mul DataRegs:$s1, immSExt9:$const9) )]>;
 }
 
-def MULrr2_64 : RR2<0x73, 0x00A, (outs ExtRegs:$d),
+def MULrr2_64 : RR2<0x73, 0x06A, (outs ExtRegs:$d),
    (ins ExtRegs:$s1, ExtRegs:$s2), "mul $d, $s1, $s2 # mul64",
    [(set ExtRegs:$d, (mul ExtRegs:$s1, ExtRegs:$s2) )]>;
 
@@ -910,15 +910,16 @@ def SHArr : RR<0x0F, 0x01, (outs DataRegs:$d), (ins DataRegs:$s1, DataRegs:$s2),
   [(set DataRegs:$d, (TriCoreSha DataRegs:$s1, DataRegs:$s2))]>;
 
 // Return Instructions
-let isTerminator = 1, isReturn = 1, isBarrier = 1 in
-   def RET : T32<(outs), (ins variable_ops), "ret",  [(TriCoreRetFlag)]>;
+//let isTerminator = 1, isReturn = 1, isBarrier = 1 in
+//   def RET : T32<(outs), (ins variable_ops), "ret",  [(TriCoreRetFlag)]>;
 
-//let isTerminator = 1, isReturn = 1,
-//  isBarrier = 1, Uses =[PCXI, PSW, FCX],
-//  Defs= [PSW, PCXI, PC, FCX] in
-//  def RETsr : T16<0x00, (outs), (ins variable_ops), "ret",  [(TriCoreRetFlag)]> {
-//   let Inst{15-12} = 0x9;
-//  }
+let isTerminator = 1, isReturn = 1,
+    isBarrier = 1, Uses =[PCXI, PSW, FCX],
+    Defs= [PSW, PCXI, PC, FCX] in
+    def RETsr : T16<(outs), (ins variable_ops), "ret",  [(TriCoreRetFlag)]> {
+       let Inst{15-12} = 0x9;
+       let Inst{7-0} = 0x0;
+}
 
 //let isTerminator = 1, isReturn = 1,
 //  isBarrier = 1, Uses = [A11] in

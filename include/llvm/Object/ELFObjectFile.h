@@ -820,6 +820,8 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
     case ELF::EM_SPARC:
     case ELF::EM_SPARC32PLUS:
       return "ELF32-sparc";
+    case ELF::EM_TRICORE:
+      return "ELF32-tricore";
     default:
       return "ELF32-unknown";
     }
@@ -883,7 +885,8 @@ unsigned ELFObjectFile<ELFT>::getArch() const {
     return IsLittleEndian ? Triple::sparcel : Triple::sparc;
   case ELF::EM_SPARCV9:
     return Triple::sparcv9;
-
+  case ELF::EM_TRICORE:
+      return Triple::tricore;
   default:
     return Triple::UnknownArch;
   }
