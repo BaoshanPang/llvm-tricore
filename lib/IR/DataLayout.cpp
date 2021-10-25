@@ -160,7 +160,7 @@ static const LayoutAlignElem DefaultAlignments[] = {
   { INTEGER_ALIGN, 8, 1, 1 },    // i8
   { INTEGER_ALIGN, 16, 2, 2 },   // i16
   { INTEGER_ALIGN, 32, 4, 4 },   // i32
-  { INTEGER_ALIGN, 64, 4, 8 },   // i64
+  { INTEGER_ALIGN, 64, 4, 8 },   // i64   // kumail ... {..., 64, 4, 8}
   { FLOAT_ALIGN, 16, 2, 2 },     // half
   { FLOAT_ALIGN, 32, 4, 4 },     // float
   { FLOAT_ALIGN, 64, 8, 8 },     // double

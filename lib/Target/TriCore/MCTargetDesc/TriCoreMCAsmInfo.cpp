@@ -24,6 +24,7 @@ TriCoreMCAsmInfo::TriCoreMCAsmInfo(const Triple &TT) {
   UsesELFSectionDirectiveForBSS = true;
   AlignmentIsInBytes = false;
 
+
   AscizDirective = "\t.string ";
 
   HiddenVisibilityAttr = MCSA_Invalid;

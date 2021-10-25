@@ -12,14 +12,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_TRICORE_TRICORE_H
-#define LLVM_LIB_TARGET_TRICORE_TRICORE_H
+#ifndef TARGET_TriCore_H
+#define TARGET_TriCore_H
 
 #include "MCTargetDesc/TriCoreMCTargetDesc.h"
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {
-
 class TargetMachine;
 class TriCoreTargetMachine;
 

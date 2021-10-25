@@ -1,4 +1,4 @@
-//=-- TriCoreRegisterInfo.h - TriCore Register Information Impl ---*- C++ -*-=//
+//===-- TriCoreRegisterInfo.h - TriCore Register Information Impl ---*- C++ -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -11,8 +11,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_TRICORE_TRICOREREGISTERINFO_H
-#define LLVM_LIB_TARGET_TRICORE_TRICOREREGISTERINFO_H
+#ifndef TriCoreREGISTERINFO_H
+#define TriCoreREGISTERINFO_H
 
 #include "llvm/Target/TargetRegisterInfo.h"
 
@@ -28,13 +28,13 @@ public:
   TriCoreRegisterInfo();
 
   /// Code Generation virtual methods...
+  const uint16_t *getCalleeSavedRegs(const MachineFunction *MF = 0) const
+      override;
 
-  const MCPhysReg *getCalleeSavedRegs(const MachineFunction *MF) const override;
+  const uint32_t *getCallPreservedMask(const MachineFunction &MF,
+                                       CallingConv::ID) const override;
 
   BitVector getReservedRegs(const MachineFunction &MF) const override;
-
-  //const uint32_t *getCallPreservedMask(const MachineFunction &MF,
-                                       //CallingConv::ID CC) const override;
 
   bool requiresRegisterScavenging(const MachineFunction &MF) const override;
 
@@ -42,12 +42,15 @@ public:
 
   bool useFPForScavengingIndex(const MachineFunction &MF) const override;
 
-  void eliminateFrameIndex(MachineBasicBlock::iterator II,
-                           int SPAdj, unsigned FIOperandNum,
-                           RegScavenger *RS = nullptr) const override;
+//  const TargetRegisterClass *getPointerRegClass(const MachineFunction &MF,
+//  																						unsigned Kind) const;
+
+  void eliminateFrameIndex(MachineBasicBlock::iterator II, int SPAdj,
+                           unsigned FIOperandNum, RegScavenger *RS = NULL) const
+      override;
 
   // Debug information queries.
-  unsigned getFrameRegister(const MachineFunction &MF) const override;
+  unsigned getFrameRegister(const MachineFunction &MF) const;
 };
 
 } // end namespace llvm

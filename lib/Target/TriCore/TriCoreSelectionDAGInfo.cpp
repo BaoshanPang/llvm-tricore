@@ -14,6 +14,6 @@
 #include "TriCoreSelectionDAGInfo.h"
 using namespace llvm;
 
-#define DEBUG_TYPE "leg-selectiondag-info"
+#define DEBUG_TYPE "tricore-selectiondag-info"
 
 TriCoreSelectionDAGInfo::~TriCoreSelectionDAGInfo() {}

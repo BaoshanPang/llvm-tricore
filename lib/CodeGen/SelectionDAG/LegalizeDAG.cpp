@@ -439,7 +439,7 @@ ExpandUnalignedLoad(LoadSDNode *LD, SelectionDAG &DAG,
                              ISD::ANY_EXTEND, dl, VT, Result);
 
       ValResult = Result;
-      ChainResult = newLoad.getValue(1);
+      ChainResult = Chain;
       return;
     }
 

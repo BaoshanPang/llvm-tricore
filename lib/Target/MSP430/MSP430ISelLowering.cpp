@@ -288,7 +288,9 @@ static void AnalyzeArguments(CCState &State,
   };
   static const unsigned NbRegs = array_lengthof(RegList);
 
+  //Check whether the incoming/outgoing arguments are variadic
   if (State.isVarArg()) {
+  	//analyze
     AnalyzeVarArgs(State, Args);
     return;
   }
@@ -318,6 +320,15 @@ static void AnalyzeArguments(CCState &State,
     }
 
     // Handle byval arguments
+    /* byval means that the parameter setup code for performing a call copies
+     * the struct onto the stack, in an appropriate position relative to the
+     * other call parameters.
+ 	 	 * =====================================================================
+ 	 	 * [byval] indicates that the pointer parameter should really be passed by
+ 	 	 * value to the function. The attribute implies that a hidden copy of the
+ 	 	 * pointee is made between the caller and the callee, so the callee is
+ 	 	 * unable to modify the value in the callee."
+     */
     if (ArgFlags.isByVal()) {
       State.HandleByVal(ValNo++, ArgVT, LocVT, LocInfo, 2, 2, ArgFlags);
       continue;
@@ -366,6 +377,14 @@ static void AnalyzeReturnValues(CCState &State,
   std::reverse(RVLocs.begin(), RVLocs.end());
 }
 
+/* LowerFormalArguments is at the beginning of a function and is responsible for
+ * taking arguments out of registers and putting them into sensible places for
+ * the rest of the function to use.
+ * ============================================================================
+ * (continued from LowerCall)..... and LowerFormalArguments would create a fixed
+ * FrameIndex pointing there and record that as the address for use by everything
+ * else.
+ */
 SDValue
 MSP430TargetLowering::LowerFormalArguments(SDValue Chain,
                                            CallingConv::ID CallConv,
@@ -389,7 +408,15 @@ MSP430TargetLowering::LowerFormalArguments(SDValue Chain,
     report_fatal_error("ISRs cannot have arguments");
   }
 }
-
+/* LowerCall is responsible for putting call arguments where callees will expect
+ * them and making the call.
+ * =============================================================================
+ * On most targets, for byval, LowerCall would store the argument by value on
+ * the stack (likely with a memcpy equivalent from the actual pointer that's
+ * being passed)
+ * ============================================================================
+ * [LowerCall is] passing pointer either on the stack or in register as per ABI
+ */
 SDValue
 MSP430TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
                                 SmallVectorImpl<SDValue> &InVals) const {
@@ -445,6 +472,9 @@ MSP430TargetLowering::LowerCCCArguments(SDValue Chain,
 
   // Create frame index for the start of the first vararg value
   if (isVarArg) {
+  	outs().changeColor(raw_ostream::YELLOW,1);
+  	outs() <<"isVarArg\n";
+  	outs().changeColor(raw_ostream::WHITE,0);
     unsigned Offset = CCInfo.getNextStackOffset();
     FuncInfo->setVarArgsFrameIndex(MFI->CreateFixedObject(1, Offset, true));
   }
@@ -679,6 +709,7 @@ MSP430TargetLowering::LowerCCCCallTo(SDValue Chain, SDValue Callee,
   else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
     Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i16);
 
+  Callee.dump();
   // Returns a chain & a flag for retval copy to use.
   SDVTList NodeTys = DAG.getVTList(MVT::Other, MVT::Glue);
   SmallVector<SDValue, 8> Ops;
@@ -1007,7 +1038,7 @@ SDValue MSP430TargetLowering::LowerSIGN_EXTEND(SDValue Op,
   SDValue Val = Op.getOperand(0);
   EVT VT      = Op.getValueType();
   SDLoc dl(Op);
-
+  outs() << "This is running!\n";
   assert(VT == MVT::i16 && "Only support i16 for now!");
 
   return DAG.getNode(ISD::SIGN_EXTEND_INREG, dl, VT,
@@ -1062,7 +1093,10 @@ SDValue MSP430TargetLowering::LowerRETURNADDR(SDValue Op,
 
 SDValue MSP430TargetLowering::LowerFRAMEADDR(SDValue Op,
                                              SelectionDAG &DAG) const {
-  MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
+
+	outs().changeColor(raw_ostream::GREEN)<<"LowerFRAMEADDR\n";
+	outs().changeColor(raw_ostream::WHITE);
+	MachineFrameInfo *MFI = DAG.getMachineFunction().getFrameInfo();
   MFI->setFrameAddressIsTaken(true);
 
   EVT VT = Op.getValueType();

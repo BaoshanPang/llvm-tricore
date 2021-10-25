@@ -23,7 +23,7 @@ type = TargetGroup
 name = TriCore
 parent = Target
 has_asmprinter = 0
-has_disassembler = 1
+has_disassembler = 0
 
 [component_1]
 type = Library

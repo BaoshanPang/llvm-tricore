@@ -133,6 +133,9 @@ namespace ISD {
     EVT ArgVT;
     bool Used;
 
+    // Thesis
+    //int32_t NoAddr;
+
     /// Index original Function's argument.
     unsigned OrigArgIndex;
     /// Sentinel value for implicit machine-level input arguments.
@@ -159,6 +162,9 @@ namespace ISD {
       assert(OrigArgIndex != NoArgIndex && "Implicit machine-level argument");
       return OrigArgIndex;
     }
+
+    // Thesis
+		void setArgVT(EVT argvt) {ArgVT = argvt;}
   };
 
   /// OutputArg - This struct carries flags and a value for a

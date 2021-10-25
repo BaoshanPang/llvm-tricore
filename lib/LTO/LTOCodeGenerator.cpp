@@ -63,21 +63,14 @@ const char* LTOCodeGenerator::getVersionString() {
 #endif
 }
 
-static void handleLTODiagnostic(const DiagnosticInfo &DI) {
-  DiagnosticPrinterRawOStream DP(errs());
-  DI.print(DP);
-  errs() << "\n";
-}
-
 LTOCodeGenerator::LTOCodeGenerator()
-    : Context(getGlobalContext()), IRLinker(new Module("ld-temp.o", Context),
-                                            handleLTODiagnostic) {
+    : Context(getGlobalContext()), IRLinker(new Module("ld-temp.o", Context)) {
   initializeLTOPasses();
 }
 
 LTOCodeGenerator::LTOCodeGenerator(std::unique_ptr<LLVMContext> Context)
     : OwnedContext(std::move(Context)), Context(*OwnedContext),
-      IRLinker(new Module("ld-temp.o", *OwnedContext), handleLTODiagnostic) {
+      IRLinker(new Module("ld-temp.o", *OwnedContext)) {
   initializeLTOPasses();
 }
 

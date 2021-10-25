@@ -1,4 +1,4 @@
-//===-- TriCore.td - Describe the TriCore Target Machine ---*- tablegen -*-===//
+//===-- TriCore.td - Describe the TriCore Target Machine -------*- tablegen -*-===//
 //
 //                     The LLVM Compiler Infrastructure
 //

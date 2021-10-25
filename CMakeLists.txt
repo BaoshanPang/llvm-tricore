@@ -60,7 +60,7 @@ set(CMAKE_MODULE_PATH
 
 set(LLVM_VERSION_MAJOR 3)
 set(LLVM_VERSION_MINOR 7)
-set(LLVM_VERSION_PATCH 1)
+set(LLVM_VERSION_PATCH 0)
 set(LLVM_VERSION_SUFFIX "")
 
 if (NOT PACKAGE_VERSION)
@@ -182,12 +182,19 @@ set(LLVM_ALL_TARGETS
   CppBackend
   Hexagon
   Mips
+###############################################################################
+# Thesis: Implementing a new backend
+###############################################################################
+  Cpu0
+  LEG
+  TriCore
+###############################################################################
+###############################################################################
   MSP430
   NVPTX
   PowerPC
   Sparc
   SystemZ
-  TriCore
   X86
   XCore
   )

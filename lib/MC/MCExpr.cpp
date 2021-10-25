@@ -288,6 +288,45 @@ StringRef MCSymbolRefExpr::getVariantKindName(VariantKind Kind) {
   case VK_Mips_CALL_LO16: return "CALL_LO16";
   case VK_Mips_PCREL_HI16: return "PCREL_HI16";
   case VK_Mips_PCREL_LO16: return "PCREL_LO16";
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case VK_Cpu0_GPREL: return "GPREL";
+  case VK_Cpu0_GOT_CALL: return "GOT_CALL";
+  case VK_Cpu0_GOT16: return "GOT16";
+  case VK_Cpu0_GOT: return "GOT";
+  case VK_Cpu0_ABS_HI: return "ABS_HI";
+  case VK_Cpu0_ABS_LO: return "ABS_LO";
+  case VK_Cpu0_TLSGD: return "TLSGD";
+  case VK_Cpu0_TLSLDM: return "TLSLDM";
+  case VK_Cpu0_DTP_HI: return "DTP_HI";
+  case VK_Cpu0_DTP_LO: return "DTP_LO";
+  case VK_Cpu0_GOTTPREL: return "GOTTPREL";
+  case VK_Cpu0_TP_HI: return "TP_HI";
+  case VK_Cpu0_TP_LO: return "TP_LO";
+  case VK_Cpu0_GPOFF_HI: return "GPOFF_HI";
+  case VK_Cpu0_GPOFF_LO: return "GPOFF_LO";
+  case VK_Cpu0_GOT_DISP: return "GOT_DISP";
+  case VK_Cpu0_GOT_PAGE: return "GOT_PAGE";
+  case VK_Cpu0_GOT_OFST: return "GOT_OFST";
+  case VK_Cpu0_HIGHER:   return "HIGHER";
+  case VK_Cpu0_HIGHEST:  return "HIGHEST";
+  case VK_Cpu0_GOT_HI16: return "GOT_HI16";
+  case VK_Cpu0_GOT_LO16: return "GOT_LO16";
+  case VK_Cpu0_CALL_HI16: return "CALL_HI16";
+  case VK_Cpu0_CALL_LO16: return "CALL_LO16";
+
+  // LEG architecture
+  case VK_LEG_LO: return "LEG_LO";
+  case VK_LEG_HI: return "LEG_HI";
+  
+  // TriCore architecture
+  case VK_TRICORE_LO: return "TRICORE_LO";
+  case VK_TRICORE_HI: return "TRICORE_HI";
+  case VK_TRICORE_LO_OFFSET: return "TRICORE_LO_OFFSET";
+  case VK_TRICORE_HI_OFFSET: return "TRICORE_HI_OFFSET";
+
+////////////////////////////////////////////////////////////////////////////////
   case VK_COFF_IMGREL32: return "IMGREL";
   case VK_Hexagon_PCREL: return "PCREL";
   case VK_Hexagon_LO16: return "LO16";
@@ -301,10 +340,6 @@ StringRef MCSymbolRefExpr::getVariantKindName(VariantKind Kind) {
   case VK_Hexagon_IE_GOT: return "IEGOT";
   case VK_TPREL: return "tprel";
   case VK_DTPREL: return "dtprel";
-  case VK_TRICORE_LO: return "LO";
-  case VK_TRICORE_HI: return "HI";
-  case VK_TRICORE_LO_OFFSET: return "LO_OFFSET";
-  case VK_TRICORE_HI_OFFSET: return "HI_OFFSET";
   }
   llvm_unreachable("Invalid variant kind");
 }
@@ -394,6 +429,14 @@ MCSymbolRefExpr::getVariantKindForName(StringRef Name) {
     .Case("tlsldo", VK_ARM_TLSLDO)
     .Case("tlscall", VK_ARM_TLSCALL)
     .Case("tlsdesc", VK_ARM_TLSDESC)
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+    .Case("LEG_LO", VK_LEG_LO)
+    .Case("LEG_HI", VK_LEG_HI)
+    .Case("TRICORE_LO", VK_TRICORE_LO)
+    .Case("TRICORE_HI", VK_TRICORE_HI)
+    /////////////////
     .Default(VK_Invalid);
 }
 

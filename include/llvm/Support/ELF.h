@@ -309,8 +309,66 @@ enum {
   EM_COOL          = 217, // iCelero CoolEngine
   EM_NORC          = 218, // Nanoradio Optimized RISC
   EM_CSR_KALIMBA   = 219, // CSR Kalimba architecture family
-  EM_AMDGPU        = 224  // AMD GPU architecture
+  EM_AMDGPU        = 224,  // AMD GPU architecture
+
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend (comma added to the last entry)
+//===----------------------------------------------------------------------===//
+  EM_CPU0          = 998, // Document LLVM Backend Tutorial Cpu0
+  EM_CPU0_LE       = 999,  // EM_CPU0_LE: little endian; EM_CPU0: big endian
+  EM_LEG           = 220
+////////////////////////////////////////////////////////////////////////////////
+
 };
+
+//kumail
+// Cpu0 Specific e_flags
+enum {
+  EF_CPU0_NOREORDER = 0x00000001, // Don't reorder instructions
+  EF_CPU0_PIC       = 0x00000002, // Position independent code
+  EF_CPU0_CPIC      = 0x00000004, // Call object with Position independent code
+  EF_CPU0_ARCH_1    = 0x00000000, // CPU01 instruction set
+  EF_CPU0_ARCH_2    = 0x10000000, // CPU02 instruction set
+  EF_CPU0_ARCH_3    = 0x20000000, // CPU03 instruction set
+  EF_CPU0_ARCH_4    = 0x30000000, // CPU04 instruction set
+  EF_CPU0_ARCH_5    = 0x40000000, // CPU05 instruction set
+  EF_CPU0_ARCH_32   = 0x50000000, // CPU032 instruction set per linux not elf.h
+  EF_CPU0_ARCH_64   = 0x60000000, // CPU064 instruction set per linux not elf.h
+  EF_CPU0_ARCH_32R2 = 0x70000000, // cpu032r2
+  EF_CPU0_ARCH_64R2 = 0x80000000, // cpu064r2
+  EF_CPU0_ARCH      = 0xf0000000  // Mask for applying EF_CPU0_ARCH_ variant
+};
+
+// ELF Relocation types for Cpu0
+// .
+enum {
+  R_CPU0_NONE              =  0,
+  R_CPU0_32                =  2,
+  R_CPU0_HI16              =  5,
+  R_CPU0_LO16              =  6,
+  R_CPU0_GPREL16           =  7,
+  R_CPU0_LITERAL           =  8,
+  R_CPU0_GOT16             =  9,
+  R_CPU0_PC16              = 10,
+  R_CPU0_CALL16            = 11,
+  R_CPU0_GPREL32           = 12,
+  R_CPU0_PC24              = 13,
+  R_CPU0_GOT_HI16          = 22,
+  R_CPU0_GOT_LO16          = 23,
+  R_CPU0_RELGOT            = 36,
+  R_CPU0_TLS_GD            = 42,
+  R_CPU0_TLS_LDM           = 43,
+  R_CPU0_TLS_DTP_HI16      = 44,
+  R_CPU0_TLS_DTP_LO16      = 45,
+  R_CPU0_TLS_GOTTPREL      = 46,
+  R_CPU0_TLS_TPREL32       = 47,
+  R_CPU0_TLS_TP_HI16       = 49,
+  R_CPU0_TLS_TP_LO16       = 50,
+  R_CPU0_GLOB_DAT          = 51,
+  R_CPU0_JUMP_SLOT         = 127
+};
+//////////////////////////////////////
+
 
 // Object file classes.
 enum {

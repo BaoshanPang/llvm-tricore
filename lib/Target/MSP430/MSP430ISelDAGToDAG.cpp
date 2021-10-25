@@ -138,11 +138,16 @@ bool MSP430DAGToDAGISel::MatchWrapper(SDValue N, MSP430ISelAddressMode &AM) {
   if (AM.hasSymbolicDisplacement())
     return true;
 
+  outs()<< "Match Wrapper N => ";
+  N.dump();
   SDValue N0 = N.getOperand(0);
+  outs()<< "N0 => "; N0.dump();
+
 
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(N0)) {
     AM.GV = G->getGlobal();
     AM.Disp += G->getOffset();
+    outs()<< "MatchWrapper->Displacement: " << AM.Disp << "\n";
     //AM.SymbolFlags = G->getTargetFlags();
   } else if (ConstantPoolSDNode *CP = dyn_cast<ConstantPoolSDNode>(N0)) {
     AM.CP = CP->getConstVal();
@@ -179,12 +184,17 @@ bool MSP430DAGToDAGISel::MatchAddressBase(SDValue N, MSP430ISelAddressMode &AM) 
 
 bool MSP430DAGToDAGISel::MatchAddress(SDValue N, MSP430ISelAddressMode &AM) {
   DEBUG(errs() << "MatchAddress: "; AM.dump());
+  DEBUG(errs() << "Node: "; N.dump());
+
 
   switch (N.getOpcode()) {
   default: break;
   case ISD::Constant: {
+  	outs()<< "MatchAddress->Constant\n ";
+
     uint64_t Val = cast<ConstantSDNode>(N)->getSExtValue();
     AM.Disp += Val;
+    outs()<< "MatchAddress->Disp: " <<AM.Disp <<"\n";
     return false;
   }
 
@@ -245,14 +255,26 @@ bool MSP430DAGToDAGISel::SelectAddr(SDValue N,
                                     SDValue &Base, SDValue &Disp) {
   MSP430ISelAddressMode AM;
 
+  outs().changeColor(raw_ostream::RED,1);
+	N.dump();
+	outs().changeColor(raw_ostream::WHITE,0);
+
+
   if (MatchAddress(N, AM))
     return false;
 
   EVT VT = N.getValueType();
   if (AM.BaseType == MSP430ISelAddressMode::RegBase) {
+  	outs().changeColor(raw_ostream::RED)<<"It's a reg base\n";
+  	outs().changeColor(raw_ostream::WHITE);
     if (!AM.Base.Reg.getNode())
       AM.Base.Reg = CurDAG->getRegister(0, VT);
   }
+
+  if (AM.BaseType == MSP430ISelAddressMode::FrameIndexBase)
+  	outs()<<"It's a FrameIndexBase\n";
+  else
+  	outs()<<"Takes the regbase\n";
 
   Base = (AM.BaseType == MSP430ISelAddressMode::FrameIndexBase)
              ? CurDAG->getTargetFrameIndex(
@@ -260,22 +282,44 @@ bool MSP430DAGToDAGISel::SelectAddr(SDValue N,
                    getTargetLowering()->getPointerTy(CurDAG->getDataLayout()))
              : AM.Base.Reg;
 
-  if (AM.GV)
-    Disp = CurDAG->getTargetGlobalAddress(AM.GV, SDLoc(N),
-                                          MVT::i16, AM.Disp,
-                                          0/*AM.SymbolFlags*/);
-  else if (AM.CP)
-    Disp = CurDAG->getTargetConstantPool(AM.CP, MVT::i16,
-                                         AM.Align, AM.Disp, 0/*AM.SymbolFlags*/);
-  else if (AM.ES)
-    Disp = CurDAG->getTargetExternalSymbol(AM.ES, MVT::i16, 0/*AM.SymbolFlags*/);
-  else if (AM.JT != -1)
-    Disp = CurDAG->getTargetJumpTable(AM.JT, MVT::i16, 0/*AM.SymbolFlags*/);
-  else if (AM.BlockAddr)
-    Disp = CurDAG->getTargetBlockAddress(AM.BlockAddr, MVT::i32, 0,
-                                         0/*AM.SymbolFlags*/);
-  else
-    Disp = CurDAG->getTargetConstant(AM.Disp, SDLoc(N), MVT::i16);
+  if (AM.GV) {
+  	outs()<<"AM.GV\n";
+  	Disp = CurDAG->getTargetGlobalAddress(AM.GV, SDLoc(N),
+  				MVT::i16, AM.Disp,
+				0/*AM.SymbolFlags*/);
+  	Disp.dump();
+
+  	GlobalAddressSDNode* G = cast<GlobalAddressSDNode>(Disp);
+  	outs() << "SelectAddr->Offset: " << G->getOffset() << "\n";
+  }
+  else if (AM.CP) {
+  	outs()<<"AM.CP\n";
+  	Disp = CurDAG->getTargetConstantPool(AM.CP, MVT::i16,
+  			AM.Align, AM.Disp, 0/*AM.SymbolFlags*/);
+  }
+
+  else if (AM.ES) {
+  	outs()<<"AM.ES\n";
+  	Disp = CurDAG->getTargetExternalSymbol(AM.ES, MVT::i16, 0/*AM.SymbolFlags*/);
+  }
+
+  else if (AM.JT != -1) {
+  	outs()<<"AM.JT\n";
+  	Disp = CurDAG->getTargetJumpTable(AM.JT, MVT::i16, 0/*AM.SymbolFlags*/);
+  }
+
+  else if (AM.BlockAddr) {
+  	outs()<<"AM.BlockAddr\n";
+  	Disp = CurDAG->getTargetBlockAddress(AM.BlockAddr, MVT::i32, 0,
+  			0/*AM.SymbolFlags*/);
+  }
+
+  else {
+  	outs()<<"SelectAddr -> AM.Disp\n";
+  	outs()<< "SelectAddr -> Displacement: " << AM.Disp << "\n";
+  	Disp = CurDAG->getTargetConstant(AM.Disp, SDLoc(N), MVT::i16);
+  }
+
 
   return true;
 }
@@ -381,9 +425,11 @@ SDNode *MSP430DAGToDAGISel::Select(SDNode *Node) {
   SDLoc dl(Node);
 
   // Dump information about the Node being selected
+  errs().changeColor(raw_ostream::BLUE,1);
   DEBUG(errs() << "Selecting: ");
   DEBUG(Node->dump(CurDAG));
   DEBUG(errs() << "\n");
+  errs().changeColor(raw_ostream::WHITE,0);
 
   // If we have a custom node, we already have selected!
   if (Node->isMachineOpcode()) {
@@ -399,20 +445,31 @@ SDNode *MSP430DAGToDAGISel::Select(SDNode *Node) {
   default: break;
   case ISD::FrameIndex: {
     assert(Node->getValueType(0) == MVT::i16);
+  	FrameIndexSDNode *FSDNode = cast<FrameIndexSDNode>(Node);
+  	//outs()<<"FI getNumOperands: "<< FSDNode->getNumOperands()<< "\n";
     int FI = cast<FrameIndexSDNode>(Node)->getIndex();
-    SDValue TFI = CurDAG->getTargetFrameIndex(FI, MVT::i16);
-    if (Node->hasOneUse())
-      return CurDAG->SelectNodeTo(Node, MSP430::ADD16ri, MVT::i16, TFI,
-                                  CurDAG->getTargetConstant(0, dl, MVT::i16));
+    //outs()<<"FI value: "<< FI << "\n";
+      SDValue TFI = CurDAG->getTargetFrameIndex(FI, MVT::i16);
+    //outs() <<"MSP430DAGToDAGISel::FrameIndex\n";
+    if (Node->hasOneUse()) {
+    	//outs() <<"Node->hasOneUse()\n";
+    	return CurDAG->SelectNodeTo(Node, MSP430::ADD16ri, MVT::i16, TFI,
+																		CurDAG->getTargetConstant(0, dl, MVT::i16));
+    }
+//
     return CurDAG->getMachineNode(MSP430::ADD16ri, dl, MVT::i16, TFI,
                                   CurDAG->getTargetConstant(0, dl, MVT::i16));
   }
   case ISD::LOAD:
-    if (SDNode *ResNode = SelectIndexedLoad(Node))
-      return ResNode;
+    if (SDNode *ResNode = SelectIndexedLoad(Node)) {
+    	outs()<<"This is SelectIndexedLoad!\n ";
+    	return ResNode;
+    }
+
     // Other cases are autogenerated.
     break;
   case ISD::ADD:
+  	outs()<<"This is ADD!\n ";
     if (SDNode *ResNode =
         SelectIndexedBinOp(Node,
                            Node->getOperand(0), Node->getOperand(1),
@@ -478,7 +535,7 @@ SDNode *MSP430DAGToDAGISel::Select(SDNode *Node) {
   // Select the default instruction
   SDNode *ResNode = SelectCode(Node);
 
-  DEBUG(errs() << "=> ");
+  DEBUG(errs() << "=>>>> ");
   if (ResNode == nullptr || ResNode == Node)
     DEBUG(Node->dump(CurDAG));
   else

@@ -55,30 +55,33 @@ public:
                              SmallVectorImpl<MCFixup> &Fixups,
                              const MCSubtargetInfo &STI) const;
 
-  unsigned getBaseOffsetValue(const MCInst &MI, unsigned OpIdx,
-                          SmallVectorImpl<MCFixup> &Fixups,
-                          const MCSubtargetInfo &STI) const;
-  
-  unsigned getBaseValue(const MCInst &MI, unsigned OpIdx,
+  unsigned getMemSrcValue(const MCInst &MI, unsigned OpIdx,
                           SmallVectorImpl<MCFixup> &Fixups,
                           const MCSubtargetInfo &STI) const;
 
   unsigned encodeCallTarget(const MCInst &MI, unsigned OpNo,
-                            SmallVectorImpl<MCFixup> &Fixups,
-                            const MCSubtargetInfo &STI) const;
+															SmallVectorImpl<MCFixup> &Fixups,
+															const MCSubtargetInfo &STI) const;
 
-  void EmitByte(unsigned char C, raw_ostream &OS) const { OS << (char)C; }
+  void EmitByte(unsigned char C, raw_ostream &OS) const
+  {
+  	OS << (char)C;
+  }
 
   void EmitConstant(uint64_t Val, unsigned Size, raw_ostream &OS) const {
     // Output the constant in little endian byte order.
-    for (unsigned i = 0; i != Size; ++i) {
-      EmitByte((Val >> (i * 8)) & 0xff, OS);
-    }
+
+  	for (unsigned i = 0; i != Size; ++i) {
+  	      EmitByte((Val >> (i * 8)) & 0xff, OS);
+  	    }
   }
-  
+
   void encodeInstruction(const MCInst &MI, raw_ostream &OS,
                          SmallVectorImpl<MCFixup> &Fixups,
                          const MCSubtargetInfo &STI) const override;
+
+
+
 };
 
 } // end anonymous namespace
@@ -88,6 +91,7 @@ MCCodeEmitter *llvm::createTriCoreMCCodeEmitter(const MCInstrInfo &MCII,
                                             MCContext &Ctx) {
   return new TriCoreMCCodeEmitter(MCII, Ctx);
 }
+
 
 unsigned TriCoreMCCodeEmitter::encodeCallTarget(const MCInst &MI, unsigned OpNo,
                                             SmallVectorImpl<MCFixup> &Fixups,
@@ -112,21 +116,20 @@ unsigned TriCoreMCCodeEmitter::getMachineOpValue(const MCInst &MI,
                                              const MCOperand &MO,
                                              SmallVectorImpl<MCFixup> &Fixups,
                                              const MCSubtargetInfo &STI) const {
-  if (MO.isReg()) {
-    switch(MO.getReg()) {
-      default:
-        return CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
-      case TriCore::E0:  return 0;
-      case TriCore::E2:  return 2;
-      case TriCore::E4:  return 4;
-      case TriCore::E6:  return 6;
-      case TriCore::E8:  return 8;
-      case TriCore::E10: return 10;
-      case TriCore::E12: return 12;
-      case TriCore::E14: return 14;
-    }
+	if (MO.isReg()) {
+		switch(MO.getReg()) {
+			default:
+				return CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
+			case TriCore::E0:  return 0;
+			case TriCore::E2:  return 2;
+			case TriCore::E4:  return 4;
+			case TriCore::E6:  return 6;
+			case TriCore::E8:  return 8;
+			case TriCore::E10: return 10;
+			case TriCore::E12: return 12;
+			case TriCore::E14: return 14;
+		}
   }
-
   if (MO.isImm()) {
     return static_cast<unsigned>(MO.getImm());
   }
@@ -150,13 +153,13 @@ unsigned TriCoreMCCodeEmitter::getMachineOpValue(const MCInst &MI,
     llvm_unreachable("Unknown fixup kind!");
   case MCSymbolRefExpr::VK_TRICORE_LO_OFFSET:
   case MCSymbolRefExpr::VK_TRICORE_HI_OFFSET:
-    return 0;
+		return 0;
   case MCSymbolRefExpr::VK_TRICORE_LO: {
-    FixupKind = TriCore::fixup_leg_mov_lo16_pcrel;
+    FixupKind = TriCore::fixup_tricore_mov_lo16_pcrel;
     break;
   }
   case MCSymbolRefExpr::VK_TRICORE_HI: {
-    FixupKind = TriCore::fixup_leg_mov_hi16_pcrel;
+    FixupKind = TriCore::fixup_tricore_mov_hi16_pcrel;
     break;
   }
   }
@@ -165,7 +168,7 @@ unsigned TriCoreMCCodeEmitter::getMachineOpValue(const MCInst &MI,
   return 0;
 }
 
-unsigned TriCoreMCCodeEmitter::getBaseOffsetValue(const MCInst &MI, unsigned OpIdx,
+unsigned TriCoreMCCodeEmitter::getMemSrcValue(const MCInst &MI, unsigned OpIdx,
                                           SmallVectorImpl<MCFixup> &Fixups,
                                           const MCSubtargetInfo &STI) const {
   const MCOperand &RegMO = MI.getOperand(OpIdx);
@@ -176,18 +179,14 @@ unsigned TriCoreMCCodeEmitter::getBaseOffsetValue(const MCInst &MI, unsigned OpI
   return offset;
 }
 
-unsigned TriCoreMCCodeEmitter::getBaseValue(const MCInst &MI, unsigned OpIdx,
-                                          SmallVectorImpl<MCFixup> &Fixups,
-                                          const MCSubtargetInfo &STI) const {
-  const MCOperand &MO = MI.getOperand(OpIdx);
-  return CTX.getRegisterInfo()->getEncodingValue(MO.getReg());
-}
+
 
 void TriCoreMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
                                          SmallVectorImpl<MCFixup> &Fixups,
                                          const MCSubtargetInfo &STI) const {
   const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
-  if (Desc.getSize() != 2 && Desc.getSize() != 4) {
+
+  if ( !(Desc.getSize() == 4 || Desc.getSize() == 2) ){
     llvm_unreachable("Unexpected instruction size!");
   }
 

@@ -815,13 +815,16 @@ StringRef ELFObjectFile<ELFT>::getFileFormatName() const {
       return "ELF32-hexagon";
     case ELF::EM_MIPS:
       return "ELF32-mips";
+    //kumail
+    case ELF::EM_CPU0:        // llvm-objdump -t -r
+    case ELF::EM_CPU0_LE:
+      return "ELF32-cpu0";
+    ///////////////////////////////
     case ELF::EM_PPC:
       return "ELF32-ppc";
     case ELF::EM_SPARC:
     case ELF::EM_SPARC32PLUS:
       return "ELF32-sparc";
-    case ELF::EM_TRICORE:
-      return "ELF32-tricore";
     default:
       return "ELF32-unknown";
     }
@@ -873,6 +876,16 @@ unsigned ELFObjectFile<ELFT>::getArch() const {
     default:
       report_fatal_error("Invalid ELFCLASS!");
     }
+  //kumail
+  case ELF::EM_CPU0:  // llvm-objdump -t -r
+  case ELF::EM_CPU0_LE:
+    switch (EF.getHeader()->e_ident[ELF::EI_CLASS]) {
+    case ELF::ELFCLASS32:
+    return IsLittleEndian ? Triple::cpu0el : Triple::cpu0;
+    default:
+      report_fatal_error("Invalid ELFCLASS!");
+    }
+  //////////////////////////////////
   case ELF::EM_PPC:
     return Triple::ppc;
   case ELF::EM_PPC64:
@@ -885,8 +898,7 @@ unsigned ELFObjectFile<ELFT>::getArch() const {
     return IsLittleEndian ? Triple::sparcel : Triple::sparc;
   case ELF::EM_SPARCV9:
     return Triple::sparcv9;
-  case ELF::EM_TRICORE:
-      return Triple::tricore;
+
   default:
     return Triple::UnknownArch;
   }

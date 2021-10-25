@@ -29,6 +29,14 @@ const char *Triple::getArchTypeName(ArchType Kind) {
   case bpfeb:       return "bpfeb";
   case hexagon:     return "hexagon";
   case mips:        return "mips";
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case cpu0:        return "cpu0";
+  case cpu0el:      return "cpu0el";
+  case leg:         return "leg";
+  case tricore:     return "tricore";
+////////////////////////////////////////////////////////////////////////////////
   case mipsel:      return "mipsel";
   case mips64:      return "mips64";
   case mips64el:    return "mips64el";
@@ -62,7 +70,6 @@ const char *Triple::getArchTypeName(ArchType Kind) {
   case shave:       return "shave";
   case wasm32:      return "wasm32";
   case wasm64:      return "wasm64";
-  case tricore:     return "tricore";
   }
 
   llvm_unreachable("Invalid ArchType!");
@@ -89,6 +96,15 @@ const char *Triple::getArchTypePrefix(ArchType Kind) {
   case mipsel:
   case mips64:
   case mips64el:    return "mips";
+
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case cpu0:
+  case cpu0el:      return "cpu0";
+  case leg:         return "leg";
+  case tricore:     return "tricore";
+////////////////////////////////////////////////////////////////////////////////
 
   case hexagon:     return "hexagon";
 
@@ -127,7 +143,6 @@ const char *Triple::getArchTypePrefix(ArchType Kind) {
   case shave:       return "shave";
   case wasm32:      return "wasm32";
   case wasm64:      return "wasm64";
-  case tricore:     return "tricore";
   }
 }
 
@@ -231,6 +246,14 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("mipsel", mipsel)
     .Case("mips64", mips64)
     .Case("mips64el", mips64el)
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+    .Case("cpu0", cpu0)
+    .Case("cpu0el", cpu0el)
+    .Case("leg", leg)
+    .Case("tricore", tricore)
+////////////////////////////////////////////////////////////////////////////////
     .Case("msp430", msp430)
     .Case("ppc64", ppc64)
     .Case("ppc32", ppc)
@@ -263,7 +286,6 @@ Triple::ArchType Triple::getArchTypeForLLVMName(StringRef Name) {
     .Case("shave", shave)
     .Case("wasm32", wasm32)
     .Case("wasm64", wasm64)
-    .Case("tricore", tricore)
     .Default(UnknownArch);
 }
 
@@ -347,6 +369,14 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Cases("mipsel", "mipsallegrexel", Triple::mipsel)
     .Cases("mips64", "mips64eb", Triple::mips64)
     .Case("mips64el", Triple::mips64el)
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+    .Cases("cpu0", "cpu0eb", "cpu0allegrex", Triple::cpu0)
+    .Cases("cpu0el", "cpu0allegrexel", Triple::cpu0el)
+    .Case("leg", Triple::leg)
+    .Case("tricore", Triple::tricore)
+////////////////////////////////////////////////////////////////////////////////
     .Case("r600", Triple::r600)
     .Case("amdgcn", Triple::amdgcn)
     .StartsWith("bpf", BPFArch)
@@ -371,7 +401,6 @@ static Triple::ArchType parseArch(StringRef ArchName) {
     .Case("shave", Triple::shave)
     .Case("wasm32", Triple::wasm32)
     .Case("wasm64", Triple::wasm64)
-    .Case("tricore", Triple::tricore)
     .Default(Triple::UnknownArch);
 }
 
@@ -532,7 +561,6 @@ static Triple::ObjectFormatType getDefaultFormat(const Triple &T) {
   case Triple::systemz:
   case Triple::xcore:
   case Triple::ppc64le:
-  case Triple::tricore:
     return Triple::ELF;
 
   case Triple::ppc:
@@ -1007,6 +1035,14 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::le32:
   case llvm::Triple::mips:
   case llvm::Triple::mipsel:
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case llvm::Triple::cpu0:
+  case llvm::Triple::cpu0el:
+  case llvm::Triple::leg:
+  case llvm::Triple::tricore:
+////////////////////////////////////////////////////////////////////////////////
   case llvm::Triple::nvptx:
   case llvm::Triple::ppc:
   case llvm::Triple::r600:
@@ -1023,7 +1059,6 @@ static unsigned getArchPointerBitWidth(llvm::Triple::ArchType Arch) {
   case llvm::Triple::kalimba:
   case llvm::Triple::shave:
   case llvm::Triple::wasm32:
-  case llvm::Triple::tricore:
     return 32;
 
   case llvm::Triple::aarch64:
@@ -1086,6 +1121,14 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::le32:
   case Triple::mips:
   case Triple::mipsel:
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case Triple::cpu0:
+  case Triple::cpu0el:
+  case Triple::leg:
+  case Triple::tricore:
+////////////////////////////////////////////////////////////////////////////////
   case Triple::nvptx:
   case Triple::ppc:
   case Triple::r600:
@@ -1098,7 +1141,6 @@ Triple Triple::get32BitArchVariant() const {
   case Triple::xcore:
   case Triple::shave:
   case Triple::wasm32:
-  case Triple::tricore:
     // Already 32-bit.
     break;
 
@@ -1130,10 +1172,15 @@ Triple Triple::get64BitArchVariant() const {
   case Triple::tce:
   case Triple::thumb:
   case Triple::thumbeb:
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case Triple::leg:
+  case Triple::tricore:
+////////////////////////////////////////////////////////////////////////////////
   case Triple::xcore:
   case Triple::sparcel:
   case Triple::shave:
-  case Triple::tricore:
     T.setArch(UnknownArch);
     break;
 
@@ -1185,6 +1232,12 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::hsail:
   case Triple::kalimba:
   case Triple::le32:
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case Triple::leg:
+  case Triple::tricore:
+/////////
   case Triple::le64:
   case Triple::msp430:
   case Triple::nvptx64:
@@ -1198,7 +1251,6 @@ Triple Triple::getBigEndianArchVariant() const {
   case Triple::x86:
   case Triple::x86_64:
   case Triple::xcore:
-  case Triple::tricore:
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
@@ -1239,7 +1291,7 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::ppc:
   case Triple::sparcv9:
   case Triple::systemz:
-  case Triple::tce:  
+  case Triple::tce:
 
   // ARM is intentionally unsupported here, changing the architecture would
   // drop any arch suffixes.
@@ -1257,6 +1309,12 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::hexagon:
   case Triple::hsail64:
   case Triple::hsail:
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  case Triple::leg:
+  case Triple::tricore:
+//////////////////
   case Triple::kalimba:
   case Triple::le32:
   case Triple::le64:
@@ -1277,7 +1335,6 @@ Triple Triple::getLittleEndianArchVariant() const {
   case Triple::x86:
   case Triple::x86_64:
   case Triple::xcore:
-  case Triple::tricore:
     // Already little endian.
     break;
 

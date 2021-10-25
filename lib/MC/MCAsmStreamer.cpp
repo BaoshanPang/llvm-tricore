@@ -659,6 +659,17 @@ void MCAsmStreamer::EmitBytes(StringRef Data) {
   assert(getCurrentSection().first &&
          "Cannot emit contents before setting section!");
   if (Data.empty()) return;
+  
+  // kumail - thesis
+  // print out a long byte sequence for char array
+  if (!(Data.back()=='\0') && !(Data.size() == 1)) {
+    for (uint32_t i = 0; i < Data.size(); i++) {
+      OS << MAI->getData8bitsDirective();
+      OS << (unsigned)(unsigned char)Data[i];
+      EmitEOL();
+    }
+    return;
+  }
 
   if (Data.size() == 1) {
     OS << MAI->getData8bitsDirective();

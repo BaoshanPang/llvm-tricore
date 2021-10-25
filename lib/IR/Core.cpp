@@ -2257,14 +2257,7 @@ LLVMValueRef LLVMBuildInvoke(LLVMBuilderRef B, LLVMValueRef Fn,
 }
 
 LLVMValueRef LLVMBuildLandingPad(LLVMBuilderRef B, LLVMTypeRef Ty,
-                                 LLVMValueRef PersFn, unsigned NumClauses,
-                                 const char *Name) {
-  // The personality used to live on the landingpad instruction, but now it
-  // lives on the parent function. For compatibility, take the provided
-  // personality and put it on the parent function.
-  if (PersFn)
-    unwrap(B)->GetInsertBlock()->getParent()->setPersonalityFn(
-        cast<Function>(unwrap(PersFn)));
+                                 unsigned NumClauses, const char *Name) {
   return wrap(unwrap(B)->CreateLandingPad(unwrap(Ty), NumClauses, Name));
 }
 

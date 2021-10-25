@@ -26,25 +26,23 @@ using namespace llvm;
 
 SIRegisterInfo::SIRegisterInfo() : AMDGPURegisterInfo() {}
 
-void SIRegisterInfo::reserveRegisterTuples(BitVector &Reserved, unsigned Reg) const {
-  MCRegAliasIterator R(Reg, this, true);
-
-  for (; R.isValid(); ++R)
-    Reserved.set(*R);
-}
-
 BitVector SIRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
   BitVector Reserved(getNumRegs());
-  Reserved.set(AMDGPU::INDIRECT_BASE_ADDR);
+  Reserved.set(AMDGPU::EXEC);
 
-  // EXEC_LO and EXEC_HI could be allocated and used as regular register, but
-  // this seems likely to result in bugs, so I'm marking them as reserved.
-  reserveRegisterTuples(Reserved, AMDGPU::EXEC);
-  reserveRegisterTuples(Reserved, AMDGPU::FLAT_SCR);
+  // EXEC_LO and EXEC_HI could be allocated and used as regular register,
+  // but this seems likely to result in bugs, so I'm marking them as reserved.
+  Reserved.set(AMDGPU::EXEC_LO);
+  Reserved.set(AMDGPU::EXEC_HI);
+
+  Reserved.set(AMDGPU::INDIRECT_BASE_ADDR);
+  Reserved.set(AMDGPU::FLAT_SCR);
+  Reserved.set(AMDGPU::FLAT_SCR_LO);
+  Reserved.set(AMDGPU::FLAT_SCR_HI);
 
   // Reserve some VGPRs to use as temp registers in case we have to spill VGPRs
-  reserveRegisterTuples(Reserved, AMDGPU::VGPR254);
-  reserveRegisterTuples(Reserved, AMDGPU::VGPR255);
+  Reserved.set(AMDGPU::VGPR255);
+  Reserved.set(AMDGPU::VGPR254);
 
   // Tonga and Iceland can only allocate a fixed number of SGPRs due
   // to a hw bug.
@@ -56,7 +54,10 @@ BitVector SIRegisterInfo::getReservedRegs(const MachineFunction &MF) const {
 
     for (unsigned i = Limit; i < NumSGPRs; ++i) {
       unsigned Reg = AMDGPU::SGPR_32RegClass.getRegister(i);
-      reserveRegisterTuples(Reserved, Reg);
+      MCRegAliasIterator R = MCRegAliasIterator(Reg, this, true);
+
+      for (; R.isValid(); ++R)
+        Reserved.set(*R);
     }
   }
 

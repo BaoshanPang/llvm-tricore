@@ -17,6 +17,7 @@
 
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/SelectionDAG.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/IR/BasicBlock.h"
 #include "llvm/Pass.h"
 #include "llvm/Target/TargetSubtargetInfo.h"
@@ -67,6 +68,7 @@ public:
   bool runOnMachineFunction(MachineFunction &MF) override;
 
   virtual void EmitFunctionEntryCode() {}
+
 
   /// PreprocessISelDAG - This hook allows targets to hack on the graph before
   /// instruction selection starts.

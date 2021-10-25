@@ -12,41 +12,41 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_TARGET_TRICORE_TRICOREFRAMELOWERING_H
-#define LLVM_LIB_TARGET_TRICORE_TRICOREFRAMELOWERING_H
+#ifndef TriCoreFRAMEINFO_H
+#define TriCoreFRAMEINFO_H
 
 #include "llvm/Target/TargetFrameLowering.h"
 #include "llvm/Target/TargetMachine.h"
 
 namespace llvm {
-  class TriCoreSubtarget;
+class TriCoreSubtarget;
 
-  class TriCoreFrameLowering : public TargetFrameLowering {
-  public:
-    TriCoreFrameLowering(const TriCoreSubtarget &STI);
+class TriCoreFrameLowering : public TargetFrameLowering {
+public:
+  TriCoreFrameLowering();
 
-    /// emitProlog/emitEpilog - These methods insert prolog and epilog code into
-    /// the function.
-    void emitPrologue(MachineFunction &MF,
-                      MachineBasicBlock &MBB) const override;
-    void emitEpilogue(MachineFunction &MF,
-                      MachineBasicBlock &MBB) const override;
+  /// emitProlog/emitEpilog - These methods insert prolog and epilog code into
+  /// the function.
+  void emitPrologue(MachineFunction &MF,
+                    MachineBasicBlock &MBB) const override;
 
-    void eliminateCallFramePseudoInstr(MachineFunction &MF,
-                                  MachineBasicBlock &MBB,
-                                  MachineBasicBlock::iterator I) const override;
+  void emitEpilogue(MachineFunction &MF,
+                              MachineBasicBlock &MBB) const override;
 
-    bool hasFP(const MachineFunction &MF) const;
+  void eliminateCallFramePseudoInstr(MachineFunction &MF,
+                                     MachineBasicBlock &MBB,
+                                     MachineBasicBlock::iterator I)
+                                     const override;
 
-    //! Stack slot size (4 bytes)
-    static int stackSlotSize() {
-      return 4;
-    }
+  bool hasFP(const MachineFunction &MF) const;
 
-  private:
-    uint64_t computeStackSize(MachineFunction &MF) const;
-  };
+  //! Stack slot size (4 bytes)
+  static int stackSlotSize() { return 8; }
+
+private:
+  uint64_t computeStackSize(MachineFunction &MF) const;
+};
 }
 
-#endif
+#endif // TriCoreFRAMEINFO_H
 

@@ -214,11 +214,8 @@ int main(int argc, char **argv) {
     if (SetMergedModule && i == BaseArg) {
       // Transfer ownership to the code generator.
       CodeGen.setModule(Module.release());
-    } else if (!CodeGen.addModule(Module.get())) {
-      // Print a message here so that we know addModule() did not abort.
-      errs() << argv[0] << ": error adding file '" << InputFilenames[i] << "'\n";
+    } else if (!CodeGen.addModule(Module.get()))
       return 1;
-    }
 
     unsigned NumSyms = LTOMod->getSymbolCount();
     for (unsigned I = 0; I < NumSyms; ++I) {

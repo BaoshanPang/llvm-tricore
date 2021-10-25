@@ -27,9 +27,10 @@ using namespace llvm;
 /*
 *  @brief This function calculates the data layout of TriCore architecture.
 */
-static std::string computeDataLayout() {
+static std::string computeDataLayout(const Triple &TT, StringRef CPU,
+                                     const TargetOptions &Options) {
   return "e-m:e-p:32:32-i64:32-a:0:32-n32";
-  //"e-m:e-p:32:32-i8:8:8-i16:16:16-i64:32-f32:32-f64:32-a:8:16-n32:64-S32";
+//  return "e-m:e-p:32:32-i8:8:8-i16:16:16-i64:32-f32:32-f64:32-a:8:16-n32:64-S32";
 }
 
 /** 
@@ -49,18 +50,18 @@ static std::string computeDataLayout() {
 *
 */
 TriCoreTargetMachine::TriCoreTargetMachine(const Target &T, const Triple &TT,
-                                           StringRef CPU, StringRef FS,
-                                           const TargetOptions &Options,
-                                           Reloc::Model RM, CodeModel::Model CM,
-                                           CodeGenOpt::Level OL)
-    : LLVMTargetMachine(T, computeDataLayout(), 
-                        TT, CPU, FS, Options, RM, CM, OL),
-      TLOF(make_unique<TargetLoweringObjectFileELF>()),
-      Subtarget(TT, CPU, FS, *this) {
+                                   StringRef CPU, StringRef FS,
+                                   const TargetOptions &Options,
+                                   Reloc::Model RM, CodeModel::Model CM,
+                                   CodeGenOpt::Level OL)
+    : LLVMTargetMachine(T, 
+      computeDataLayout(TT, CPU, Options), 
+      TT, CPU, FS,
+      Options, RM, CM, OL),
+      Subtarget(TT, CPU, FS, *this),
+      TLOF(make_unique<TargetLoweringObjectFileELF>()) {
   initAsmInfo();
 }
-
-TriCoreTargetMachine::~TriCoreTargetMachine() {}
 
 namespace {
 /// TriCore Code Generator Pass Configuration Options.

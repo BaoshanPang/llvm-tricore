@@ -24,6 +24,9 @@
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Support/RecyclingAllocator.h"
 #include "llvm/Target/TargetMachine.h"
+//Thesis
+#include "llvm/Support/raw_ostream.h"
+
 #include <cassert>
 #include <map>
 #include <string>
@@ -550,6 +553,18 @@ public:
     return getNode(ISD::CopyFromReg, dl, VTs, Ops);
   }
 
+  // Thesis
+  // This version of the getCopyFromReg method takes an extra operand, that
+  // tells whether the input value from the register is a pointer on a
+  // non-pointer. This has to be done, because LLVM casts all i32 and i32* value
+  // types into i32. Hence, the "pointness" is lost.
+  SDValue getCopyFromReg(SDValue Chain, SDLoc dl, unsigned Reg, EVT VT
+  												, int64_t argVT) {
+      SDVTList VTs = getVTList(VT, MVT::Other);
+      SDValue Ops[] = { Chain, getRegister(Reg, VT) };
+      return getNode(ISD::CopyFromReg, dl, VTs, Ops, argVT);
+    }
+
   // This version of the getCopyFromReg method takes an extra operand, which
   // indicates that there is potentially an incoming glue value (if Glue is not
   // null) and that there should be a glue result.
@@ -675,6 +690,15 @@ public:
                   ArrayRef<SDValue> Ops);
   SDValue getNode(unsigned Opcode, SDLoc DL, SDVTList VTs,
                   ArrayRef<SDValue> Ops);
+  // Thesis
+  // Creates a specified SDNode that also take cares of the
+  // argument value type being passed.
+  SDValue getNode(unsigned Opcode, SDLoc DL, SDVTList VTs,
+                    ArrayRef<SDValue> Ops, int64_t argVT);
+  SDValue getNode(unsigned Opcode, SDLoc DL, EVT VT,
+                    ArrayRef<SDValue> Ops, int64_t argVT);
+  SDValue getNode(unsigned Opcode, SDLoc DL, EVT VT, SDValue N1, SDValue N2,
+                    int64_t argVT, const SDNodeFlags *Flags = nullptr);
 
   // Specialize based on number of operands.
   SDValue getNode(unsigned Opcode, SDLoc DL, EVT VT);

@@ -172,6 +172,8 @@ std::string EVT::getEVTString() const {
   case MVT::v8f64:   return "v8f64";
   case MVT::Metadata:return "Metadata";
   case MVT::Untyped: return "Untyped";
+  // Thesis
+  case MVT::iPTR:    return "i32*"; 
   }
 }
 

@@ -3284,6 +3284,138 @@ SDValue SelectionDAG::FoldConstantArithmetic(unsigned Opcode, SDLoc DL, EVT VT,
   return getNode(ISD::BUILD_VECTOR, SDLoc(), VT, Outputs);
 }
 
+// Thesis
+SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, EVT VT, SDValue N1,
+										 SDValue N2, int64_t argVT, const SDNodeFlags *Flags) {
+  ConstantSDNode *N1C = dyn_cast<ConstantSDNode>(N1);
+  ConstantSDNode *N2C = dyn_cast<ConstantSDNode>(N2);
+  switch (Opcode) {
+  default: break;
+  case ISD::OR:
+  case ISD::XOR:
+  case ISD::ADD:
+  case ISD::SUB:
+    assert(VT.isInteger() && "This operator does not apply to FP types!");
+    assert(N1.getValueType() == N2.getValueType() &&
+           N1.getValueType() == VT && "Binary operator types must match!");
+    // (X ^|+- 0) -> X.  This commonly occurs when legalizing i64 values, so
+    // it's worth handling here.
+    if (N2C && N2C->isNullValue())
+      return N1;
+    break;
+  }
+
+  // Perform trivial constant folding.
+  if (SDValue SV =
+          FoldConstantArithmetic(Opcode, DL, VT, N1.getNode(), N2.getNode()))
+    return SV;
+
+  // Canonicalize constant to RHS if commutative.
+  if (N1C && !N2C && isCommutativeBinOp(Opcode)) {
+    std::swap(N1C, N2C);
+    std::swap(N1, N2);
+  }
+
+
+  // Canonicalize an UNDEF to the RHS, even over a constant.
+  if (N1.getOpcode() == ISD::UNDEF) {
+    if (isCommutativeBinOp(Opcode)) {
+      std::swap(N1, N2);
+    } else {
+      switch (Opcode) {
+      case ISD::FP_ROUND_INREG:
+      case ISD::SIGN_EXTEND_INREG:
+      case ISD::SUB:
+      case ISD::FSUB:
+      case ISD::FDIV:
+      case ISD::FREM:
+      case ISD::SRA:
+        return N1;     // fold op(undef, arg2) -> undef
+      case ISD::UDIV:
+      case ISD::SDIV:
+      case ISD::UREM:
+      case ISD::SREM:
+      case ISD::SRL:
+      case ISD::SHL:
+        if (!VT.isVector())
+          return getConstant(0, DL, VT);    // fold op(undef, arg2) -> 0
+        // For vectors, we can't easily build an all zero vector, just return
+        // the LHS.
+        return N2;
+      }
+    }
+  }
+
+  // Fold a bunch of operators when the RHS is undef.
+  if (N2.getOpcode() == ISD::UNDEF) {
+    switch (Opcode) {
+    case ISD::XOR:
+      if (N1.getOpcode() == ISD::UNDEF)
+        // Handle undef ^ undef -> 0 special case. This is a common
+        // idiom (misuse).
+        return getConstant(0, DL, VT);
+      // fallthrough
+    case ISD::ADD:
+    case ISD::ADDC:
+    case ISD::ADDE:
+    case ISD::SUB:
+    case ISD::UDIV:
+    case ISD::SDIV:
+    case ISD::UREM:
+    case ISD::SREM:
+      return N2;       // fold op(arg1, undef) -> undef
+    case ISD::FADD:
+    case ISD::FSUB:
+    case ISD::FMUL:
+    case ISD::FDIV:
+    case ISD::FREM:
+      if (getTarget().Options.UnsafeFPMath)
+        return N2;
+      break;
+    case ISD::MUL:
+    case ISD::AND:
+    case ISD::SRL:
+    case ISD::SHL:
+      if (!VT.isVector())
+        return getConstant(0, DL, VT);  // fold op(arg1, undef) -> 0
+      // For vectors, we can't easily build an all zero vector, just return
+      // the LHS.
+      return N1;
+    case ISD::OR:
+      if (!VT.isVector())
+        return getConstant(APInt::getAllOnesValue(VT.getSizeInBits()), DL, VT);
+      // For vectors, we can't easily build an all one vector, just return
+      // the LHS.
+      return N1;
+    case ISD::SRA:
+      return N1;
+    }
+  }
+
+  // Memoize this node if possible.
+  BinarySDNode *N;
+  SDVTList VTs = getVTList(VT);
+  if (VT != MVT::Glue) {
+    SDValue Ops[] = {N1, N2};
+    FoldingSetNodeID ID;
+    AddNodeIDNode(ID, Opcode, VTs, Ops);
+    AddNodeIDFlags(ID, Opcode, Flags);
+    void *IP = nullptr;
+    if (SDNode *E = FindNodeOrInsertPos(ID, DL.getDebugLoc(), IP))
+      return SDValue(E, 0);
+
+    N = GetBinarySDNode(Opcode, DL, VTs, N1, N2, Flags);
+
+    CSEMap.InsertNode(N, IP);
+  } else {
+    N = GetBinarySDNode(Opcode, DL, VTs, N1, N2, Flags);
+  }
+
+  InsertNode(N);
+  return SDValue(N, 0, argVT);
+}
+
+
 SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, EVT VT, SDValue N1,
                               SDValue N2, const SDNodeFlags *Flags) {
   ConstantSDNode *N1C = dyn_cast<ConstantSDNode>(N1);
@@ -5316,14 +5448,56 @@ SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, EVT VT,
   return getNode(Opcode, DL, VT, NewOps);
 }
 
+// Thesis
+SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, EVT VT,
+		ArrayRef<SDValue> Ops, int64_t argVT) {
+
+	unsigned NumOps = Ops.size();
+//	outs()<< "Ops.size: " << Ops.size() <<"\n";
+	switch (NumOps) {
+	case 0: return getNode(Opcode, DL, VT);
+	case 1: return getNode(Opcode, DL, VT, Ops[0]);
+	case 2: return getNode(Opcode, DL, VT, Ops[0], Ops[1], argVT );
+	case 3:	return getNode(Opcode, DL, VT, Ops[0], Ops[1], Ops[2]);
+	default: break;
+	}
+
+	// Memoize nodes.
+	SDNode *N;
+	SDVTList VTs = getVTList(VT);
+
+	if (VT != MVT::Glue) {
+		FoldingSetNodeID ID;
+		AddNodeIDNode(ID, Opcode, VTs, Ops);
+		void *IP = nullptr;
+
+		if (SDNode *E = FindNodeOrInsertPos(ID, DL.getDebugLoc(), IP))
+			return SDValue(E, 0);
+
+		N = new (NodeAllocator) SDNode(Opcode, DL.getIROrder(), DL.getDebugLoc(),
+				VTs, Ops);
+		CSEMap.InsertNode(N, IP);
+	} else {
+		N = new (NodeAllocator) SDNode(Opcode, DL.getIROrder(), DL.getDebugLoc(),
+				VTs, Ops);
+	}
+
+	InsertNode(N);
+	return SDValue(N, 0);
+}
+
+
+
 SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, EVT VT,
                               ArrayRef<SDValue> Ops) {
-  unsigned NumOps = Ops.size();
+
+	unsigned NumOps = Ops.size();
+//	outs()<< "Ops.size: " << Ops.size() <<"\n";
   switch (NumOps) {
   case 0: return getNode(Opcode, DL, VT);
   case 1: return getNode(Opcode, DL, VT, Ops[0]);
   case 2: return getNode(Opcode, DL, VT, Ops[0], Ops[1]);
-  case 3: return getNode(Opcode, DL, VT, Ops[0], Ops[1], Ops[2]);
+  case 3:	return getNode(Opcode, DL, VT, Ops[0], Ops[1], Ops[2]);
   default: break;
   }
 
@@ -5376,6 +5550,7 @@ SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL,
   return getNode(Opcode, DL, getVTList(ResultTys), Ops);
 }
 
+
 SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, SDVTList VTList,
                               ArrayRef<SDValue> Ops) {
   if (VTList.NumVTs == 1)
@@ -5421,6 +5596,115 @@ SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, SDVTList VTList,
       N = new (NodeAllocator) BinarySDNode(Opcode, DL.getIROrder(),
                                            DL.getDebugLoc(), VTList, Ops[0],
                                            Ops[1]);
+    } else if (NumOps == 3) {
+      N = new (NodeAllocator) TernarySDNode(Opcode, DL.getIROrder(),
+                                            DL.getDebugLoc(), VTList, Ops[0],
+                                            Ops[1], Ops[2]);
+    } else {
+      N = new (NodeAllocator) SDNode(Opcode, DL.getIROrder(), DL.getDebugLoc(),
+                                     VTList, Ops);
+    }
+    CSEMap.InsertNode(N, IP);
+  } else {
+    if (NumOps == 1) {
+      N = new (NodeAllocator) UnarySDNode(Opcode, DL.getIROrder(),
+                                          DL.getDebugLoc(), VTList, Ops[0]);
+    } else if (NumOps == 2) {
+      N = new (NodeAllocator) BinarySDNode(Opcode, DL.getIROrder(),
+                                           DL.getDebugLoc(), VTList, Ops[0],
+                                           Ops[1]);
+    } else if (NumOps == 3) {
+      N = new (NodeAllocator) TernarySDNode(Opcode, DL.getIROrder(),
+                                            DL.getDebugLoc(), VTList, Ops[0],
+                                            Ops[1], Ops[2]);
+    } else {
+      N = new (NodeAllocator) SDNode(Opcode, DL.getIROrder(), DL.getDebugLoc(),
+                                     VTList, Ops);
+    }
+  }
+  InsertNode(N);
+  return SDValue(N, 0);
+}
+
+// Thesis
+/*
+ * This getNode() function takes in an extra formal argument that tells about
+ * the type of the argument being passed. Currently, we are only interested in
+ * the creation of BinarySDNode. This node is created whenever a CopyFromReg is
+ * performed. CopyfromReg contains an extra parameter that will be used to
+ * define the argument value type of the register.
+ *
+ *   CopyFromReg Node description:
+ *      				               __________
+ *      				              |  	       |
+ *      				              | Register |
+ *        				            |__________|
+ *     				                     /|\
+ *   					                      |
+ *   					                      |
+ *   		              ______________|____
+ *   		  	         |    0    |    1    |
+ *   				         |_________|_________|
+ *   				         |                   |
+ *   				         |   CopyFromReg     |
+ *   				         |___________________|
+ *
+ * 	The zeroth operand is always a chain node, and is used for showing depen-
+ * 	dency between instruction. The first operand is of prime concern as it con-
+ * 	tains the virtual register. It is here we attach the machine function
+ * 	argument parameter to the register.
+ */
+
+
+SDValue SelectionDAG::getNode(unsigned Opcode, SDLoc DL, SDVTList VTList,
+                              ArrayRef<SDValue> Ops, int64_t argVT) {
+//  outs()<< "VTList.NumVTs: " << VTList.NumVTs <<"\n";
+//  outs()<< "Opcode: " << Opcode <<"\n";
+
+	if (VTList.NumVTs == 1)
+    return getNode(Opcode, DL, VTList.VTs[0], Ops, argVT);
+
+#if 0
+  switch (Opcode) {
+  // FIXME: figure out how to safely handle things like
+  // int foo(int x) { return 1 << (x & 255); }
+  // int bar() { return foo(256); }
+  case ISD::SRA_PARTS:
+  case ISD::SRL_PARTS:
+  case ISD::SHL_PARTS:
+    if (N3.getOpcode() == ISD::SIGN_EXTEND_INREG &&
+        cast<VTSDNode>(N3.getOperand(1))->getVT() != MVT::i1)
+      return getNode(Opcode, DL, VT, N1, N2, N3.getOperand(0));
+    else if (N3.getOpcode() == ISD::AND)
+      if (ConstantSDNode *AndRHS = dyn_cast<ConstantSDNode>(N3.getOperand(1))) {
+        // If the and is only masking out bits that cannot effect the shift,
+        // eliminate the and.
+        unsigned NumBits = VT.getScalarType().getSizeInBits()*2;
+        if ((AndRHS->getValue() & (NumBits-1)) == NumBits-1)
+          return getNode(Opcode, DL, VT, N1, N2, N3.getOperand(0));
+      }
+    break;
+  }
+#endif
+
+  // Memoize the node unless it returns a flag.
+  SDNode *N;
+  unsigned NumOps = Ops.size();
+  if (VTList.VTs[VTList.NumVTs-1] != MVT::Glue) {
+    FoldingSetNodeID ID;
+    AddNodeIDNode(ID, Opcode, VTList, Ops);
+    void *IP = nullptr;
+    if (SDNode *E = FindNodeOrInsertPos(ID, DL.getDebugLoc(), IP))
+      return SDValue(E, 0);
+
+    if (NumOps == 1) {
+      N = new (NodeAllocator) UnarySDNode(Opcode, DL.getIROrder(),
+                                          DL.getDebugLoc(), VTList, Ops[0]);
+    } else if (NumOps == 2) {
+    	//Ops[1].dump();
+      N = new (NodeAllocator) BinarySDNode(Opcode, DL.getIROrder(),
+                                           DL.getDebugLoc(), VTList, Ops[0],
+                                           Ops[1], argVT);
     } else if (NumOps == 3) {
       N = new (NodeAllocator) TernarySDNode(Opcode, DL.getIROrder(),
                                             DL.getDebugLoc(), VTList, Ops[0],

@@ -57,6 +57,14 @@ public:
     mipsel,     // MIPSEL: mipsel, mipsallegrexel
     mips64,     // MIPS64: mips64
     mips64el,   // MIPS64EL: mips64el
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+    cpu0,       // For Tutorial Backend Cpu0
+    cpu0el,
+    tricore,    // Thesis Architecture
+    leg,
+////////////////////////////////////////////////////////////////////////////////
     msp430,     // MSP430: msp430
     ppc,        // PPC: powerpc
     ppc64,      // PPC64: powerpc64, ppu
@@ -87,8 +95,7 @@ public:
     shave,      // SHAVE: Movidius vector VLIW processors
     wasm32,     // WebAssembly with 32-bit pointers
     wasm64,     // WebAssembly with 64-bit pointers
-    tricore,    // TriCore
-    LastArchType = tricore
+    LastArchType = wasm64
   };
   enum SubArchType {
     NoSubArch,

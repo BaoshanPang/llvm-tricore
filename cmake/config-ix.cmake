@@ -350,6 +350,17 @@ elseif (LLVM_NATIVE_ARCH MATCHES "arm")
   set(LLVM_NATIVE_ARCH ARM)
 elseif (LLVM_NATIVE_ARCH MATCHES "mips")
   set(LLVM_NATIVE_ARCH Mips)
+###############################################################################
+# Thesis: Implementing a new backend
+###############################################################################
+elseif (LLVM_NATIVE_ARCH MATCHES "cpu0")
+  set(LLVM_NATIVE_ARCH Cpu0)
+elseif (LLVM_NATIVE_ARCH MATCHES "leg")
+  set(LLVM_NATIVE_ARCH LEG)
+elseif (LLVM_NATIVE_ARCH MATCHES "tricore")
+  set(LLVM_NATIVE_ARCH TriCore)
+###############################################################################
+###############################################################################
 elseif (LLVM_NATIVE_ARCH MATCHES "xcore")
   set(LLVM_NATIVE_ARCH XCore)
 elseif (LLVM_NATIVE_ARCH MATCHES "msp430")

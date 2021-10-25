@@ -276,6 +276,43 @@ public:
     VK_Mips_PCREL_HI16,
     VK_Mips_PCREL_LO16,
 
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+    VK_Cpu0_GPREL,
+    VK_Cpu0_GOT_CALL,
+    VK_Cpu0_GOT16,
+    VK_Cpu0_GOT,
+    VK_Cpu0_ABS_HI,
+    VK_Cpu0_ABS_LO,
+    VK_Cpu0_TLSGD,
+    VK_Cpu0_TLSLDM,
+    VK_Cpu0_DTP_HI,
+    VK_Cpu0_DTP_LO,
+    VK_Cpu0_GOTTPREL,
+    VK_Cpu0_TP_HI,
+    VK_Cpu0_TP_LO,
+    VK_Cpu0_GPOFF_HI,
+    VK_Cpu0_GPOFF_LO,
+    VK_Cpu0_GOT_DISP,
+    VK_Cpu0_GOT_PAGE,
+    VK_Cpu0_GOT_OFST,
+    VK_Cpu0_HIGHER,
+    VK_Cpu0_HIGHEST,
+    VK_Cpu0_GOT_HI16,
+    VK_Cpu0_GOT_LO16,
+    VK_Cpu0_CALL_HI16,
+    VK_Cpu0_CALL_LO16,
+
+    VK_LEG_LO,   // For LEG Architecture
+    VK_LEG_HI,
+    
+    VK_TRICORE_LO, // For TriCore Architecture
+    VK_TRICORE_HI,
+		VK_TRICORE_HI_OFFSET,
+		VK_TRICORE_LO_OFFSET,
+///////////////////////////////////////////////////////////////////////////////
+
     VK_COFF_IMGREL32, // symbol@imgrel (image-relative)
 
     VK_Hexagon_PCREL,
@@ -289,12 +326,7 @@ public:
     VK_Hexagon_IE,
     VK_Hexagon_IE_GOT,
     VK_TPREL,
-    VK_DTPREL,
-    
-    VK_TRICORE_LO,
-    VK_TRICORE_HI,
-    VK_TRICORE_LO_OFFSET,
-    VK_TRICORE_HI_OFFSET
+    VK_DTPREL
   };
 
 private:

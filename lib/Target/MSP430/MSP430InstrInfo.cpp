@@ -50,10 +50,15 @@ void MSP430InstrInfo::storeRegToStackSlot(MachineBasicBlock &MBB,
                             MFI.getObjectSize(FrameIdx),
                             MFI.getObjectAlignment(FrameIdx));
 
-  if (RC == &MSP430::GR16RegClass)
-    BuildMI(MBB, MI, DL, get(MSP430::MOV16mr))
-      .addFrameIndex(FrameIdx).addImm(0)
-      .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
+  errs()<<"storeRegToStackSlot\n";
+
+
+  if (RC == &MSP430::GR16RegClass) {
+  	BuildMI(MBB, MI, DL, get(MSP430::MOV16mr))
+  	      .addFrameIndex(FrameIdx).addImm(0)
+  	      .addReg(SrcReg, getKillRegState(isKill)).addMemOperand(MMO);
+ 		outs()<<"Offset: " << MMO->getOffset() << "\n";
+  }
   else if (RC == &MSP430::GR8RegClass)
     BuildMI(MBB, MI, DL, get(MSP430::MOV8mr))
       .addFrameIndex(FrameIdx).addImm(0)
@@ -92,7 +97,10 @@ void MSP430InstrInfo::copyPhysReg(MachineBasicBlock &MBB,
                                   MachineBasicBlock::iterator I, DebugLoc DL,
                                   unsigned DestReg, unsigned SrcReg,
                                   bool KillSrc) const {
-  unsigned Opc;
+
+	errs()<<"MSP430InstrInfo::copyPhysReg\n";
+
+	unsigned Opc;
   if (MSP430::GR16RegClass.contains(DestReg, SrcReg))
     Opc = MSP430::MOV16rr;
   else if (MSP430::GR8RegClass.contains(DestReg, SrcReg))

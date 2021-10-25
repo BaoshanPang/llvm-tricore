@@ -211,10 +211,10 @@ let isCall = 1 in
       Uses = [SP] in {
     def CALLi     : II16i<0x0,
                           (outs), (ins i16imm:$dst),
-                          "call\t$dst", [(MSP430call imm:$dst)]>;
+                          "_call\t$dst", [(MSP430call imm:$dst)]>;
     def CALLr     : II16r<0x0,
                           (outs), (ins GR16:$dst),
-                          "call\t$dst", [(MSP430call GR16:$dst)]>;
+                          "CALL\t${dst:mem}", [(MSP430call GR16:$dst)]>;
     def CALLm     : II16m<0x0,
                           (outs), (ins memsrc:$dst),
                           "call\t${dst:mem}", [(MSP430call (load addr:$dst))]>;
@@ -981,7 +981,7 @@ def SEXT16r : II16r<0x0,
 
 def ZEXT16r : I8rr<0x0,
                    (outs GR16:$dst), (ins GR16:$src),
-                   "mov.b\t{$src, $dst}",
+                   "mov.b_\t{$src, $dst}",
                    [(set GR16:$dst, (zext (trunc GR16:$src)))]>;
 
 // FIXME: Memory bitswaps?

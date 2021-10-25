@@ -37,6 +37,8 @@
 #include "llvm/Support/MathExtras.h"
 #include <cassert>
 
+#include "llvm/Support/raw_ostream.h"
+
 namespace llvm {
 
 class SelectionDAG;
@@ -110,6 +112,9 @@ class SDValue {
 public:
   SDValue() : Node(nullptr), ResNo(0) {}
   SDValue(SDNode *node, unsigned resno);
+
+  // Thesis
+  SDValue(SDNode *node, unsigned resno, int64_t argVT);
 
   /// get the index which selects a specific result in the SDNode
   unsigned getResNo() const { return ResNo; }
@@ -354,6 +359,11 @@ private:
   /// List of uses for this SDNode.
   SDUse *UseList;
 
+  // Thesis
+  // This defines the EVT type of the arguments passed when crrated using a
+  // CopyFromReg.
+  int64_t argType;
+
   /// The number of entries in the Operand/Value list.
   unsigned short NumOperands, NumValues;
 
@@ -563,6 +573,12 @@ public:
                             SmallPtrSetImpl<const SDNode *> &Visited,
                             SmallVectorImpl<const SDNode *> &Worklist) const;
 
+  // Thesis
+  // Return the argument type
+  int64_t getArgType() { return argType; }
+
+  void setArgType(int64_t _argType) { argType = _argType;}
+
   /// Return the number of values used by this operation.
   unsigned getNumOperands() const { return NumOperands; }
 
@@ -726,13 +742,21 @@ protected:
     return Ret;
   }
 
+  // Thesis
+  // All SDNode ctors have to be adapted inorder to contain the information
+  // about the argtype.
+  //
+  //  Added: argType(MVT::INVALID_SIMPLE_VALUE_TYPE)
+  //
   SDNode(unsigned Opc, unsigned Order, DebugLoc dl, SDVTList VTs,
          ArrayRef<SDValue> Ops)
       : NodeType(Opc), OperandsNeedDelete(true), HasDebugValue(false),
         SubclassData(0), NodeId(-1),
         OperandList(Ops.size() ? new SDUse[Ops.size()] : nullptr),
-        ValueList(VTs.VTs), UseList(nullptr), NumOperands(Ops.size()),
-        NumValues(VTs.NumVTs), IROrder(Order), debugLoc(std::move(dl)) {
+        ValueList(VTs.VTs), UseList(nullptr), argType(MVT::INVALID_SIMPLE_VALUE_TYPE),
+				NumOperands(Ops.size()), NumValues(VTs.NumVTs), IROrder(Order),
+				debugLoc(std::move(dl))
+				{
     assert(debugLoc.hasTrivialDestructor() && "Expected trivial destructor");
     assert(NumOperands == Ops.size() &&
            "NumOperands wasn't wide enough for its operands!");
@@ -746,16 +770,42 @@ protected:
     checkForCycles(this);
   }
 
+  // Thesis
+	// All SDNode ctors have to be adapted inorder to contain the information
+	// about the argtype.
+	//
+	//  Added: argType(MVT::INVALID_SIMPLE_VALUE_TYPE)
+	//
   /// This constructor adds no operands itself; operands can be
   /// set later with InitOperands.
-  SDNode(unsigned Opc, unsigned Order, DebugLoc dl, SDVTList VTs)
+  SDNode(unsigned Opc, unsigned Order, DebugLoc dl,
+  		SDVTList VTs)
       : NodeType(Opc), OperandsNeedDelete(false), HasDebugValue(false),
         SubclassData(0), NodeId(-1), OperandList(nullptr), ValueList(VTs.VTs),
-        UseList(nullptr), NumOperands(0), NumValues(VTs.NumVTs),
-        IROrder(Order), debugLoc(std::move(dl)) {
+        UseList(nullptr), argType(MVT::INVALID_SIMPLE_VALUE_TYPE), NumOperands(0),
+				NumValues(VTs.NumVTs), IROrder(Order), debugLoc(std::move(dl)){
     assert(debugLoc.hasTrivialDestructor() && "Expected trivial destructor");
     assert(NumValues == VTs.NumVTs &&
            "NumValues wasn't wide enough for its operands!");
+  }
+
+  // Thesis
+  // All SDNode ctors have to be adapted inorder to contain the information
+  // about the argtype.
+  //
+  //  Added: argType(argType)
+  //
+  /// This constructor adds no operands itself; operands can be
+  /// set later with InitOperands.
+  SDNode(unsigned Opc, unsigned Order, DebugLoc dl,
+  		SDVTList VTs, int64_t argType)
+  : NodeType(Opc), OperandsNeedDelete(false), HasDebugValue(false),
+		SubclassData(0), NodeId(-1), OperandList(nullptr), ValueList(VTs.VTs),
+		UseList(nullptr), argType(argType), NumOperands(0), NumValues(VTs.NumVTs),
+		IROrder(Order), debugLoc(std::move(dl)){
+  	assert(debugLoc.hasTrivialDestructor() && "Expected trivial destructor");
+  	assert(NumValues == VTs.NumVTs &&
+  			"NumValues wasn't wide enough for its operands!");
   }
 
   /// Initialize the operands list of this with 1 operand.
@@ -874,13 +924,26 @@ public:
 
 
 // Define inline functions from the SDValue class.
-
+// Thesis
 inline SDValue::SDValue(SDNode *node, unsigned resno)
     : Node(node), ResNo(resno) {
   assert((!Node || ResNo < Node->getNumValues()) &&
          "Invalid result number for the given node!");
   assert(ResNo < -2U && "Cannot use result numbers reserved for DenseMaps.");
 }
+
+// Thesis
+inline SDValue::SDValue(SDNode *node, unsigned resno, int64_t argVT)
+    : Node(node), ResNo(resno) {
+  assert((!Node || ResNo < Node->getNumValues()) &&
+         "Invalid result number for the given node!");
+  assert(ResNo < -2U && "Cannot use result numbers reserved for DenseMaps.");
+
+  Node->setArgType(argVT);
+
+
+}
+
 
 inline unsigned SDValue::getOpcode() const {
   return Node->getOpcode();
@@ -1011,6 +1074,8 @@ public:
   }
 };
 
+//  Thesis
+//	Added a new ctor that also contains the argument information.
 /// This class is used for two-operand SDNodes.  This is solely
 /// to allow co-allocation of node operands with the node itself.
 class BinarySDNode : public SDNode {
@@ -1021,6 +1086,12 @@ public:
     : SDNode(Opc, Order, dl, VTs) {
     InitOperands(Ops, X, Y);
   }
+  // ******* New Constructor ***********
+  BinarySDNode(unsigned Opc, unsigned Order, DebugLoc dl, SDVTList VTs,
+                 SDValue X, SDValue Y, int64_t argVT)
+      : SDNode(Opc, Order, dl, VTs, argVT) {
+      InitOperands(Ops, X, Y);
+    }
 };
 
 /// Returns true if the opcode is a binary operation with flags.

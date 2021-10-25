@@ -103,11 +103,6 @@ protected:
 
         VNInfo *AddendValNo =
           LIS->getInterval(MI->getOperand(1).getReg()).Query(FMAIdx).valueIn();
-        if (!AddendValNo) {
-          // This can be null if the register is undef.
-          continue;
-        }
-
         MachineInstr *AddendMI = LIS->getInstructionFromIndex(AddendValNo->def);
 
         // The addend and this instruction must be in the same block.
@@ -186,14 +181,11 @@ protected:
         if (!KilledProdOp)
           continue;
 
-	// If the addend copy is used only by this MI, then the addend source
-	// register is likely not live here. This could be fixed (based on the
-	// legality checks above, the live range for the addend source register
-	// could be extended), but it seems likely that such a trivial copy can
-	// be coalesced away later, and thus is not worth the effort.
-	if (TargetRegisterInfo::isVirtualRegister(AddendSrcReg) &&
-            !LIS->getInterval(AddendSrcReg).liveAt(FMAIdx))
-          continue;
+        // For virtual registers, verify that the addend source register
+        // is live here (as should have been assured above).
+        assert((!TargetRegisterInfo::isVirtualRegister(AddendSrcReg) ||
+                LIS->getInterval(AddendSrcReg).liveAt(FMAIdx)) &&
+               "Addend source register is not live!");
 
         // Transform: (O2 * O3) + O1 -> (O2 * O1) + O3.
 

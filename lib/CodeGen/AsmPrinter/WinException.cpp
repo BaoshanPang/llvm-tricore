@@ -169,7 +169,7 @@ void WinException::endFunction(const MachineFunction *MF) {
     Asm->OutStreamer->PopSection();
   }
 
-  if (shouldEmitMoves || shouldEmitPersonality)
+  if (shouldEmitMoves)
     Asm->OutStreamer->EmitWinCFIEndProc();
 }
 

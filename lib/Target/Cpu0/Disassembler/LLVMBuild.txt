@@ -1,4 +1,4 @@
-;===- ./lib/Target/TriCore/Disassembler/LLVMBuild.txt ----------*- Conf -*--===;
+;===- ./lib/Target/Cpu0/Disassembler/LLVMBuild.txt --------------*- Conf -*--===;
 ;
 ;                     The LLVM Compiler Infrastructure
 ;
@@ -17,7 +17,7 @@
 
 [component_0]
 type = Library
-name = TriCoreDisassembler
-parent = TriCore
-required_libraries = MCDisassembler Support TriCoreInfo
-add_to_library_groups = TriCore
+name = Cpu0Disassembler
+parent = Cpu0
+required_libraries = MCDisassembler Support Cpu0Info
+add_to_library_groups = Cpu0

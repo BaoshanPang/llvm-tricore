@@ -240,9 +240,6 @@ bool PPCVSXSwapRemoval::gatherVectorInstructions() {
   for (MachineBasicBlock &MBB : *MF) {
     for (MachineInstr &MI : MBB) {
 
-      if (MI.isDebugValue())
-        continue;
-
       bool RelevantInstr = false;
       bool Partial = false;
 

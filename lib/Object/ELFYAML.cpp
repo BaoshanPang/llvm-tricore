@@ -65,7 +65,11 @@ ScalarEnumerationTraits<ELFYAML::ELF_EM>::enumeration(IO &IO,
   ECase(EM_ALPHA)
   ECase(EM_SH)
   ECase(EM_SPARCV9)
-  ECase(EM_TRICORE)
+//===----------------------------------------------------------------------===//
+// Thesis: Implementing a new backend
+//===----------------------------------------------------------------------===//
+  //ECase(EM_TRICORE)
+////////////////////////////////////////////////////////////////////////////////
   ECase(EM_ARC)
   ECase(EM_H8_300)
   ECase(EM_H8_300H)
