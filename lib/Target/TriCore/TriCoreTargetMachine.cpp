@@ -74,9 +74,7 @@ public:
     return getTM<TriCoreTargetMachine>();
   }
 
-  virtual bool addPreISel() override;
   virtual bool addInstSelector() override;
-  virtual void addPreEmitPass() override;
 };
 } // namespace
 
@@ -84,14 +82,10 @@ TargetPassConfig *TriCoreTargetMachine::createPassConfig(legacy::PassManagerBase
   return new TriCorePassConfig(this, PM);
 }
 
-bool TriCorePassConfig::addPreISel() { return false; }
-
 bool TriCorePassConfig::addInstSelector() {
   addPass(createTriCoreISelDag(getTriCoreTargetMachine(), getOptLevel()));
   return false;
 }
-
-void TriCorePassConfig::addPreEmitPass() {}
 
 // Force static initialization.
 extern "C" void LLVMInitializeTriCoreTarget() {
